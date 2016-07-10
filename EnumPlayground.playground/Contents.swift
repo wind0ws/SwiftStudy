@@ -43,3 +43,43 @@ func testOptional() -> Void {
 
 
 //testOptional()
+
+/**
+ * 现在我们来学习递归枚举
+ * 递归枚举需要在enum关键词前加入indrect来标记这个枚举是递归的
+ */
+
+
+indirect enum ArithmeticExpression {
+    //注意： 如果case语句（条件）不在同一行（换行），不需要在case语句后面加逗号！！！ 这个和java的习惯是不同的！！！！
+    //只有当 case在同一行，需要用逗号分隔case内容。
+    case Number(Int)
+    case Add(first:ArithmeticExpression,second:ArithmeticExpression)
+    case Multiply(multiplier:ArithmeticExpression,multiplicand:ArithmeticExpression)
+}
+
+
+func evaluate(expression:ArithmeticExpression) -> Int {
+    switch expression {
+    case let  .Number(number):
+        return number
+    case let .Add(exp1,exp2):
+        return evaluate(exp1) + evaluate(exp2)
+    case let .Multiply(exp1,exp2):
+        return evaluate(exp1) * evaluate(exp2)
+    }
+}
+
+
+func testIndirectEnum() -> Void {
+    // (4+5)*2
+    let four = ArithmeticExpression.Number(4)
+    let five = ArithmeticExpression.Number(5)
+    let sum = ArithmeticExpression.Add(first: four, second: five)
+    let two = ArithmeticExpression.Number(2)
+    let multipy = ArithmeticExpression.Multiply(multiplier: sum, multiplicand: two)
+    let result = evaluate(multipy)
+    print("\(result)")
+}
+
+//testIndirectEnum()
