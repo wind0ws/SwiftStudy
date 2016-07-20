@@ -411,3 +411,128 @@ func testSubscripts() -> Void {
     
 }
 //testSubscripts()
+
+/**
+ 
+    继承
+ 一个类可以继承另一个类的方法，属性 和其它特性。
+ 当一个类继承其它类时，继承类叫子类，被继承类叫父类。在swift中，继承时区分 类 与其它类型的一个基本特征。
+ 在swift中，类可以调用和访问超类(super)的方法／属性／附属脚本，并且可以重写这些方法／属性／附属脚本来修改他们的行为。
+ 可以为类中继承来的属性添加属性观察器，这样一来，当属性值改变时，类就会被通知到。可以为任何属性添加属性观察器，无论它原来被定义为存储属性还是计算属性
+ 
+ 
+    基类
+ Swift中的类并不是从一个通用的基类继承而来。如果你不为你定义的类制定一个超类的话，这个类就自动成为基类。
+ 
+    重写（override）
+ 调用 super.someMethod() 来调用父类方法
+ 调用 super.someProperty 来访问超类（父类）版本的属性
+ 调用 super[someIndex] 来访问父类的附属脚本
+ 
+ 可以将继承来的只读属性重写为一个读写属性。但不可以将一个继承来的读写属性重写为一个只读属性！！！
+ 
+ 不要为继承来的常量存储属性或继承来的只读属性添加属性观察器。这是不恰当的，因为他们的值是不可以被设置的。
+ 还有不要给 计算属性（提供get set的属性）添加属性观察器，因为在get set里已经可以观察到了。
+ 
+    防止重写
+ 可以通过把方法／属性／附属脚本 标记为final来防止他们被重写。例如 final var  ／  final func  ／ final class func ／ final subscript
+ 
+ 如果在类名前面加上final特性后，这样的类是不允许被继承的。
+ 
+ */
+
+class Vehicle{
+    var currentSpeed = 0.0
+    var description:String { //计算属性（只读）
+        return "traveling at \(currentSpeed) miles per hour"
+    }
+    func makeNoise() -> Void {
+        //Do nothing
+    }
+}
+
+class Train: Vehicle{
+    
+    var isAirTravel = false //是否是高铁
+    
+    override func makeNoise() {
+        print("Choo Choo")
+    }
+}
+
+class AutomaticCar:Vehicle{
+    override var currentSpeed: Double{
+        willSet{
+            print("Car speed will set to \(newValue)")
+        }
+        didSet{
+            gear = Int(currentSpeed / 10.0) + 1
+            print("Car speed has been set from \(oldValue) to \(currentSpeed)")
+        }
+    }
+    
+    var gear = 1
+    override var description: String{
+        return super.description+" in gear \(gear)"
+    }
+}
+func testCar() -> Void {
+    let car = AutomaticCar()
+    car.currentSpeed = 10
+    print("car gear \(car.gear)")
+    car.currentSpeed = 50
+    print("car gear \(car.gear)")
+}
+
+//testCar()
+
+
+/**
+    构造过程 （Init）
+ 
+ Swift的构造器不需要返回值。它的任务是保证实例在第一次使用前完成正确的初始化，
+ 
+    存储属性的初始赋值
+ 类和结构体在创建实例时，必须为所有存储属性设置合适的初始值。存储属性的值不能处于一个未知的状态。
+ 在构造器中（在didSet中）为属性赋值是不会触发任何属性观察者的！
+ 
+ 如果某个属性一直有个默认值，建议在声明的时候给赋值上，这会让构造器更简洁。
+ 
+ 可选属性类型（Optional）如果不赋值，则默认就是nil 没有值。
+ 
+ 常量属性可以在构造过程中进行修改。但是一旦构造结束。这个值就不能更改了。另外这个常量属性不能在子类中更改，只能在当前类的构造函数中。
+ 
+ 如果类或结构体的每个属性都有一个默认值，那么Swift会自动创建一个默认构造函数。
+ 
+ 逐一成员构造器：针对结构体，如果对每个存储属性都提供了默认值，且没有自定义的构造器，那么swift会创建一个逐一成员构造器。
+ 
+ 构造器代理。在多个构造器中可以调用self.init来调用其它构造器。 注意：一旦定义了自定义的构造器，不管类还是结构体，默认生成的构造器都会失效。
+ 
+ 
+ */
+
+struct Fahrenheit {
+    var temperature = 32.0
+    
+}
+
+struct Celsius {
+    var temperatureInCelsius:Double
+    init(fromFahrenheit fahrenheit:Double){
+        temperatureInCelsius = (fahrenheit - 32.0)/1.8
+    }
+    init(fromKelvin kelvin:Double){
+        temperatureInCelsius = kelvin - 237.15
+    }
+    init(_ celsius:Double){
+        temperatureInCelsius = celsius
+    }
+}
+
+func testInit() -> Void {
+    let boilingPointOfWater = Celsius(fromFahrenheit: 212.0)
+    print("\(boilingPointOfWater.temperatureInCelsius)")
+    let freezingPointOfWater = Celsius(fromKelvin: 237.15)
+    print("\(freezingPointOfWater.temperatureInCelsius)")
+}
+//testInit()
