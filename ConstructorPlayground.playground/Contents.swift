@@ -54,8 +54,9 @@ class RecipeIngredient: Food {
      */
     init(name:String,quantity:Int){
         self.quantity = quantity
-//        super.init() //错误，不能调用父类便利构造器
+        //        super.init() //错误，不能调用父类便利构造器
         super.init(name: name)
+
     }
     
     /*
@@ -200,9 +201,72 @@ class Product {
 }
 
 struct Animal {
-    var name:String
-    init?(name:String){
+    var areaName:String
+    init?(areaName:String){
         //结构体（值类型）就可以在构造器任何地方触发构造失败的行为而无需等属性初始化完毕
+        //但是调用父类必须等属性初始化完毕才可向上调用
+        if areaName.isEmpty {
+            return nil
+        }
+        self.areaName = areaName
+    }
+    
+}
+
+
+/**
+ 构造失败的传递
+ 可失败构造器允许在同一类,结构体和枚举中横向或向上代理其他的可失败构造器或非可失败构造器。
+ 在触发构建失败行为前，最好先向上或横向调用其它构造器。其它构造器构造失败则不会继续执行下面的构造。
+ */
+
+class CarItem:Product{
+    var quantity:Int!
+    
+    init?(name: String,quantity: Int) {
+        self.quantity = quantity
+        //先向上代理父类构造器或先判断自身条件均可
+        if self.quantity < 1 {
+            return nil
+        }
+        super.init(name: name)
+    }
+    
+    
+}
+
+func testCarItem() -> Void {
+    let carItem = CarItem(name: "", quantity: 1)
+    if let carItem = carItem {
+        print("OK\(carItem)")
+    }else{
+        print("Init failure")
+    }
+}
+
+//testCarItem()
+
+/**
+ 
+ 重写可失败构造器
+ 
+ 子类可失败构造器可重写父类可失败构造器。子类非可失败构造器也可以重写父类可失败构造器。
+ 
+ 注意当你用一个子类的非可失败构造器重写了一个父类的可失败构造器时,子类的构造器将不再能向上代理父类
+ 的可失败构造器。一个非可失败的构造器永远也不能代理调用一个可失败构造器。
+ 
+ 可以用非可失败构造器重写一个可失败构造器，只是不能向上代理这个可失败构造器了。
+ 但是一个可失败构造器绝对不能重写一个非可失败构造器（这个就类似于 父亲本类不会失败，结果儿子重写他说他失败了。这个是不允许的）
+
+ */
+
+class Document {
+    var name:String?
+    
+    init(){
+    }
+
+    init?(name:String){
         if name.isEmpty {
             return nil
         }
@@ -211,11 +275,26 @@ struct Animal {
     
 }
 
+class AutomaticallyNamedDocument: Document {
+    var quantity:Int!
+    override init(){
+        quantity = 1
+        super.init()
+    }
+    
+    override init(name: String) {
+        quantity = 1
+        //不能调父类的可失败构造器了。因为重写后的构造器是非失败的
+        super.init()
+    }
+    
+    init(name: String,quantity: Int) {
+        self.quantity = 1
+        super.init()
+        
+    }
 
-/**
- 构造失败的传递
- 可失败构造器允许在同一类,结构体和枚举中横向代理其他的可失败构造器。
- */
+}
 
 
 class Father {
