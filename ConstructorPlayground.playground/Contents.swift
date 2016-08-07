@@ -177,10 +177,17 @@ func testInitFailure() -> Void {
 
 class Product {
     let name:String!
+    let serialNumber:Int
+    
+    init(name:String,serialNumber:Int){
+        self.name = name
+        self.serialNumber = serialNumber
+    }
     
     init?(name:String){
         //这里的顺序不能反。必须等到类的属性初始化完成后才能触发构造失败
         self.name = name
+        self.serialNumber = -1
         if name.isEmpty {
             return nil
         }
@@ -223,6 +230,23 @@ struct Animal {
 class CarItem:Product{
     var quantity:Int!
     
+//    override init?(name: String, serialNumber: Int) {
+//        错误！！！ 子类不能用可失败构造器重写父类不可失败构造器
+//    }
+    
+    override init(name: String) {
+        self.quantity = 1
+        /*
+          子类 可用 不可失败构造器 重写父类可失败构造器。  但是在构造器里面不能向上代理父类的可失败构造器！！
+         下面这个语句是错误的
+          super.init(name: name)
+         */
+        //除非你能确定父类的可失败构造器肯定不会失败，在代理父类可失败构造器后面加！来强制解包
+//        super.init(name: name)!
+        //常规情况是在这里代理父类的非可失败构造器
+        super.init(name: name, serialNumber: 1111)
+    }
+    
     init?(name: String,quantity: Int) {
         self.quantity = quantity
         //先向上代理父类构造器或先判断自身条件均可
@@ -231,6 +255,13 @@ class CarItem:Product{
         }
         super.init(name: name)
     }
+    
+    init!(serialNumber:Int){
+        self.quantity = 100
+        super.init(name: "Michael")
+    }
+    
+    
     
     
 }
@@ -296,6 +327,53 @@ class AutomaticallyNamedDocument: Document {
 
 }
 
+
+/*
+ 
+ 必要构造器 required  子类必须实现父类的必要构造器
+ 
+ */
+
+class SomeClass {
+    var someProperty:String
+    required init(){
+        someProperty = "No Name"
+    }
+}
+
+class SubClass: SomeClass {
+    //子类重写父类required构造器无需加 override
+    required init() {
+        super.init()
+        someProperty = "Hello,SubClass"
+    }
+}
+
+/*
+ 通过函数或闭包创建属性的默认值
+ */
+
+class MyClass {
+    var myClassProperty:String = "Default"
+    
+    var someClass:SomeClass = {
+        let sl = SomeClass()
+        sl.someProperty = "MyClass"
+//        self.myClassProperty  错误，属性默认值闭包在执行时，不能访问实例的其它属性，也不能访问self，因为还未初始化完成
+        return sl
+    }()
+    
+    var subClasses:[SubClass] = {
+       var subClses = [SubClass]()
+        subClses.append(SubClass())
+        return subClses
+    }()
+    
+    
+    /*注意 在闭包大括号后面必须加上（） 来表示实例创建时立即执行这个闭包
+     */
+    
+}
 
 class Father {
     var address:String?
