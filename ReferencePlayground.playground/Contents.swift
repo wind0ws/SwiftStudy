@@ -138,3 +138,60 @@ func testExample3() -> Void {
     country = nil
 }
 //testExample3()
+
+
+/**
+ 
+ 闭包 引起的强循环引用
+ 
+ 循环强引用发生在当一个闭包赋值给一个属性时，而且这个闭包体里又引用了自身的实例（比如在闭包体里又引用了自身的属性或自身的方法）。
+ 
+ 究其原因，闭包和类 类似，都是引用类型。
+ 
+ Swift 提供了一种优雅的方法来解决这个问题,称之为闭包捕获列表(closuer capture list)
+ 
+ lazy var someClosure: (Int, String) -> String = {
+ [unowned self, weak delegate = self.delegate!] (index: Int, stringToProcess: String) -> String in
+ // closure body goes here
+ }
+
+ 如果闭包没有指明参数列表或者返回类型,即它们会通过上下文推断,那么可以把捕获列表和关键字 in 放在闭包 最开始的地方:
+ lazy var someClosure: Void -> String = {
+ [unowned self, weak delegate = self.delegate!] in
+ // closure body goes here
+ }
+ 
+ 如果闭包体里的引用同时销毁或者引用永远不为nil，那么设为unowned无主引用  如果可能为nil，那么设成weak弱引用
+ 
+ **/
+
+class HtmlElement{
+    let name:String
+    let text:String?
+    lazy var numberToString: (number:Int) -> String = {
+        (number:Int) in return "\(number)"
+    }
+    lazy var asHtml: Void -> String = {
+        //注意:
+        //虽然闭包多次使用了 self ,它只捕获 HTMLElement 实例的一个强引用。
+        //注意: Swift 有如下要求:只要在闭包内使用 self 的成员,就要用 self.someProperty 或者 self.someMethod()  (而不只是 someProperty 或 someMethod )。这提醒你可能会一不小心就捕获了 self。
+        [unowned self] in return "\(self.name) \(self.text)"
+    }
+    
+    init(name:String,text:String? = nil){
+        self.name = name
+        self.text = text
+    }
+    
+    deinit{
+        print("HtmlElement \(name) deinit")
+    }
+}
+
+func testExample4() -> Void {
+    let html = HtmlElement(name: "html name")
+    let result = html.asHtml()
+//    let result = html.numberToString(number: 222)
+    print("\(result)")
+}
+//testExample4()
