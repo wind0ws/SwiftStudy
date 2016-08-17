@@ -135,6 +135,7 @@ class City {
 
 func testExample3() -> Void {
     var country:Country? = Country(country: "China", capital: "BeiJing")
+    print("\(country)")
     country = nil
 }
 //testExample3()
@@ -150,6 +151,10 @@ func testExample3() -> Void {
  
  Swift 提供了一种优雅的方法来解决这个问题,称之为闭包捕获列表(closuer capture list)
  
+ 在定义闭包时同时定义捕获列表作为闭包的一部分，通过这种方式可以解决闭包和类实例之间的循环强引用。
+ 捕获列表定义了闭包体内捕获一个或者多个引用类型的规则。
+ 跟解决两个类实例间的循环强引用一样，声明每个捕获的引用为弱引用或无主引用，而不是强引用。应当根据代码关系来决定使用弱引用还是无主引用。
+ 
  lazy var someClosure: (Int, String) -> String = {
  [unowned self, weak delegate = self.delegate!] (index: Int, stringToProcess: String) -> String in
  // closure body goes here
@@ -163,24 +168,46 @@ func testExample3() -> Void {
  
  如果闭包体里的引用同时销毁或者引用永远不为nil，那么设为unowned无主引用  如果可能为nil，那么设成weak弱引用
  
+ 注意:
+ 如果被捕获的引用绝对不会变为nil，应该用无主引用，而不是弱引用。
+ 
  **/
 
-class HtmlElement{
+protocol MyProtocol : class{
+    func doSomething()->String
+}
+
+
+class HtmlElement:MyProtocol{
     let name:String
     let text:String?
-    lazy var numberToString: (number:Int) -> String = {
-        (number:Int) in return "\(number)"
+    weak var delegate:MyProtocol!
+    
+    var numberToString: (number:Int) -> String = {
+        (number:Int)->String in return "\(number)"
     }
+    //这里必须加lazy关键词 因为闭包访问self了。如果不加lazy，在闭包创建的时候，self还没有创建。
     lazy var asHtml: Void -> String = {
         //注意:
         //虽然闭包多次使用了 self ,它只捕获 HTMLElement 实例的一个强引用。
-        //注意: Swift 有如下要求:只要在闭包内使用 self 的成员,就要用 self.someProperty 或者 self.someMethod()  (而不只是 someProperty 或 someMethod )。这提醒你可能会一不小心就捕获了 self。
-        [unowned self] in return "\(self.name) \(self.text)"
+        //注意: Swift 有如下要求:只要在闭包内使用 self 的成员,就要用 self.someProperty 或者 self.someMethod()  (而不只是 someProperty 或 someMethod )。这提醒你可能会一不小心就捕获了 self
+        [unowned self ] in
+        if let text = self.text{
+            return "\(self.name) \(text)  \(self.delegate!.doSomething())"
+        }else{
+            return "\(self.name) text is nil"
+        }
+        
+    }
+    
+    func doSomething() -> String {
+        return "DoSomething OK"
     }
     
     init(name:String,text:String? = nil){
         self.name = name
         self.text = text
+        self.delegate = self
     }
     
     deinit{
@@ -188,10 +215,26 @@ class HtmlElement{
     }
 }
 
+class HtmlDom{
+    let name:String
+    init(name:String){
+        self.name = name
+    }
+    
+    func description() -> String {
+        return "HtmlDom: \(name) "
+    }
+    
+    deinit{
+        print("HtmlDom \(name) deinit")
+    }
+
+}
+
 func testExample4() -> Void {
-    let html = HtmlElement(name: "html name")
+    let html = HtmlElement(name: "html name",text: " text ")
     let result = html.asHtml()
 //    let result = html.numberToString(number: 222)
     print("\(result)")
 }
-//testExample4()
+testExample4()
