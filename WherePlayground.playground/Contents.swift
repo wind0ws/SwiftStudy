@@ -66,7 +66,7 @@ func whereFor() -> Void {
 //    for  i in 80...100 where i%3==0 {
 //        print(" \(i) can be divide by 3")
 //    }
-    for case let i in 80...100 where  i%3==0{
+    for case let i in 80...100 where i%3 == 0{
          print(" \(i) can be divide by 3")
     }
     
@@ -77,3 +77,54 @@ func whereFor() -> Void {
 
 
 //whereSwitch()
+
+enum ErrorInput:ErrorType {
+    case InputMissing
+    case AgeIncorrect
+    case GenderIncorrect
+}
+
+func whereGuard(age:String?,name:String?,gender:Int) throws -> String {
+    guard let age = age,name = name where age.characters.count > 0 && name.characters.count > 0 else{
+        throw ErrorInput.InputMissing
+    }
+    guard gender == 0 || gender == 1 else{
+        throw ErrorInput.GenderIncorrect
+    }
+    guard let ageFormatted = Int(age) else{
+        throw ErrorInput.AgeIncorrect
+    }
+    let genderStr:String
+    switch gender {  //switch 语句中的 default必须在所有case 的  最后，不能放到前面！
+    case 1:
+        genderStr = "Girl"
+    default:
+        genderStr = "Boy"
+    }
+    return "\(name) age is \(ageFormatted), gender is \(genderStr)"
+    //有没有发现guard 很牛掰，guard不仅能解包获取值，而且解包后的变量（或常量）在后面还能使用.
+}
+
+//do{
+//    let zhangSan = try whereGuard("12", name: "ZhangSan", gender: 3)
+//    print(" 创建张三成功 ")
+//}catch ErrorInput.InputMissing{
+//    print("却少输入")
+//}catch ErrorInput.AgeIncorrect{
+//    print("年龄不对")
+//}catch ErrorInput.GenderIncorrect {
+//    print("性别只能输入0或1")
+//}catch{
+//    print("未知错误")
+//}
+
+func ifLetTest() -> Void  {
+    let name:String? = "ZhangSan"
+    if let name = name {
+        print("\(name) 解包成功")
+    }
+    print("\(name) Name 还说Optional类型的")
+    //if let 解包出的变量只能在 if 大括号里面使用。这里就和guard不同。
+}
+
+
