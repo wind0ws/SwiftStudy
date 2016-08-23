@@ -330,8 +330,10 @@ class AutomaticallyNamedDocument: Document {
 
 /*
  
- 必要构造器 required  子类必须实现父类的必要构造器
+ 必要构造器 required 
+ 子类必须实现父类的必要构造器(无需写override，按照父类的写法再写一个实现)
  
+ 注意: 如果子类继承的构造器能满足必要构造器的需求,则你无需显示的在子类中提供必要构造器的实现。
  */
 
 class SomeClass {
@@ -343,10 +345,19 @@ class SomeClass {
 
 class SubClass: SomeClass {
     //子类重写父类required构造器无需加 override
+    
+    //如果没有下面 init(someValue:String) 这个自定义的构造器，
+    //那么SubClass从父类继承的构造器就已经满足必要构造器的需求了，也就无需写 required init()  这个构造器了。
     required init() {
         super.init()
         someProperty = "Hello,SubClass"
     }
+    
+    init(someValue:String) {
+        super.init()
+        self.someProperty = someValue
+    }
+    
 }
 
 /*
